@@ -9,18 +9,20 @@
 
     <style>
         :root { --primary: #4f46e5; --success: #16a34a; --bg-body: #f9fafb; --border: #e5e7eb; }
-        body { font-family: sans-serif; background: var(--bg-body); margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
+        body { font-family: sans-serif; background: var(--bg-body); margin: 0; padding: 20px; color: #1f2937; }
+        .container { max-width: 850px; margin: 0 auto; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .card { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
-        .day-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-        .day-chip { display: flex; align-items: center; background: #eee; padding: 8px; border-radius: 6px; cursor: pointer; }
-        button { cursor: pointer; border: none; border-radius: 8px; padding: 12px; font-weight: 600; }
+        .card { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .day-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .day-chip { display: flex; align-items: center; background: #eee; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+        .day-chip input { margin-right: 8px; }
+        button { cursor: pointer; border: none; border-radius: 8px; padding: 12px 20px; font-weight: 600; }
         .btn-add { background: var(--primary); color: white; }
-        .btn-gen { background: var(--success); color: white; width: 100%; font-size: 1.1rem; margin-bottom: 20px; }
+        .btn-gen { background: var(--success); color: white; width: 100%; font-size: 1.1rem; margin-bottom: 10px; }
+        .timestamp-info { text-align: center; font-size: 0.85rem; color: #6b7280; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; }
         th, td { padding: 15px; border-bottom: 1px solid var(--border); text-align: left; }
-        th { background: #f0f4ff; }
+        th { background: #f0f4ff; color: #3730a3; font-size: 0.9rem; text-transform: uppercase; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; }
         .modal.active { display: flex; }
         .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; }
@@ -28,6 +30,7 @@
         .tab { padding: 10px; cursor: pointer; opacity: 0.6; }
         .tab.active { opacity: 1; border-bottom: 2px solid var(--primary); font-weight: bold; }
         .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500; }
         input, select { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; }
     </style>
 </head>
@@ -40,11 +43,12 @@
     </header>
 
     <div class="card">
-        <strong>Non-Veg Allowed Days:</strong>
-        <div id="day-selector" class="day-grid" style="margin-top:10px"></div>
+        <strong>Select Non-Veg Allowed Days:</strong>
+        <div id="day-selector" class="day-grid"></div>
     </div>
 
     <button class="btn-gen" onclick="generatePlan()">Generate Weekly Schedule</button>
+    <div id="gen-timestamp" class="timestamp-info"></div>
 
     <div class="card" style="padding:0">
         <table>
@@ -58,22 +62,24 @@
     <div class="modal-content">
         <div class="tabs">
             <div id="t1" class="tab active" onclick="switchTab('add-dish')">Add Dish</div>
-            <div id="t2" class="tab" onclick="switchTab('settings')">Settings</div>
+            <div id="t2" class="tab" onclick="switchTab('settings')">Default Rules</div>
         </div>
-        <div id="add-dish">
-            <div class="form-group"><label>Dish Name</label><input id="d-name" type="text"></div>
+        
+        <div id="pane-add-dish">
+            <div class="form-group"><label>Dish Name</label><input id="d-name" type="text" placeholder="e.g. Fish Curry"></div>
             <div class="form-group"><label>Category</label><select id="d-cat"><option>Veg</option><option>Chicken</option><option>Fish</option></select></div>
-            <div class="form-group"><label>Servings</label><input id="d-serv" type="number" value="1" min="1"></div>
-            <div class="form-group"><label>Daily Dish?</label><select id="d-daily"><option value="false">No</option><option value="true">Yes</option></select></div>
-            <div class="form-group"><input type="checkbox" id="d-dup"> <label style="display:inline">Allow Duplicates?</label></div>
-            <button class="btn-add" onclick="saveDish()">Save Dish</button>
-            <button onclick="toggleModal()">Cancel</button>
+            <div class="form-group"><label>Servings (Slots)</label><input id="d-serv" type="number" value="1" min="1"></div>
+            <div class="form-group"><label>Is this a Daily Dish?</label><select id="d-daily"><option value="false">No</option><option value="true">Yes</option></select></div>
+            <div class="form-group"><input type="checkbox" id="d-dup"> <label style="display:inline">Allow Duplicate in same week?</label></div>
+            <button class="btn-add" style="width:100%" onclick="saveDish()">Save Dish</button>
+            <button onclick="toggleModal()" style="width:100%; margin-top:10px; background:#f3f4f6">Cancel</button>
         </div>
-        <div id="settings" style="display:none">
-            <p>Default Veg-Only Days:</p>
+
+        <div id="pane-settings" style="display:none">
+            <p style="font-size:0.9rem">Select your default <strong>Veg-Only</strong> days:</p>
             <div id="default-veg-list"></div>
-            <button class="btn-add" onclick="saveConfig()" style="margin-top:10px">Save Rules</button>
-            <button onclick="toggleModal()">Cancel</button>
+            <button class="btn-add" style="width:100%; margin-top:20px" onclick="saveConfig()">Save Default Rules</button>
+            <button onclick="toggleModal()" style="width:100%; margin-top:10px; background:#f3f4f6">Cancel</button>
         </div>
     </div>
 </div>
@@ -99,16 +105,17 @@
         const def = document.getElementById('default-veg-list');
         days.forEach(d => {
             sel.innerHTML += `<label class="day-chip"><input type="checkbox" value="${d}" class="nv-check"> ${d}</label>`;
-            def.innerHTML += `<div><input type="checkbox" value="${d}" class="def-veg-check"> ${d}</div>`;
+            def.innerHTML += `<div style="margin-bottom:5px"><input type="checkbox" value="${d}" class="def-veg-check"> ${d}</div>`;
         });
         loadPlan();
         loadConfig();
     };
 
     function toggleModal() { document.getElementById('modal').classList.toggle('active'); }
+    
     function switchTab(t) {
-        document.getElementById('add-dish').style.display = t === 'add-dish' ? 'block' : 'none';
-        document.getElementById('settings').style.display = t === 'settings' ? 'block' : 'none';
+        document.getElementById('pane-add-dish').style.display = t === 'add-dish' ? 'block' : 'none';
+        document.getElementById('pane-settings').style.display = t === 'settings' ? 'block' : 'none';
         document.getElementById('t1').classList.toggle('active', t === 'add-dish');
         document.getElementById('t2').classList.toggle('active', t === 'settings');
     }
@@ -116,12 +123,22 @@
     async function loadPlan() {
         const snap = await db.collection(collectionMealPlan).get();
         const body = document.getElementById('meal-plan-body');
+        const tsInfo = document.getElementById('gen-timestamp');
         body.innerHTML = '';
-        const data = {}; snap.forEach(doc => data[doc.id] = doc.data());
+        
+        let latestTs = null;
+        const data = {}; 
+        snap.forEach(doc => {
+            data[doc.id] = doc.data();
+            if(doc.data().generatedAt) latestTs = doc.data().generatedAt;
+        });
+
         days.forEach(d => {
             const m = data[d] || { lunch: '-', dinner: '-' };
             body.innerHTML += `<tr><td><strong>${d}</strong></td><td>${m.lunch}</td><td>${m.dinner}</td></tr>`;
         });
+
+        if(latestTs) tsInfo.innerText = "Current plan generated on: " + new Date(latestTs).toLocaleString();
     }
 
     async function loadConfig() {
@@ -135,7 +152,8 @@
     async function saveConfig() {
         const vegDays = Array.from(document.querySelectorAll('.def-veg-check:checked')).map(e => e.value);
         await db.collection(collectionMain).doc('config').set({ vegDays });
-        alert("Settings saved!");
+        alert("Default settings saved!");
+        toggleModal();
     }
 
     async function saveDish() {
@@ -144,9 +162,14 @@
         const servings = parseInt(document.getElementById('d-serv').value);
         const isDailyDish = document.getElementById('d-daily').value === "true";
         const duplicateEnabled = document.getElementById('d-dup').checked;
-        if(!name) return alert("Name required");
-        await db.collection(collectionMain).add({ name, category, servings, isDailyDish, duplicateEnabled, type: 'dish', timestamp: Date.now() });
-        alert("Dish Saved!");
+
+        if(!name) return alert("Dish name is required");
+        await db.collection(collectionMain).add({ 
+            name, category, servings, isDailyDish, duplicateEnabled, 
+            type: 'dish', timestamp: Date.now() 
+        });
+        document.getElementById('d-name').value = '';
+        alert("Dish added to library!");
         toggleModal();
     }
 
@@ -162,53 +185,48 @@
 
         const snap = await db.collection(collectionMain).where('type', '==', 'dish').get();
         let master = []; snap.forEach(d => master.push(d.data()));
-        
+        if(master.length === 0) return alert("Add dishes first!");
+
         let pool = [...master], schedule = {}, leftover = { item: null, rem: 0 };
+        const genTime = Date.now();
 
         for (const day of days) {
-            schedule[day] = { lunch: null, dinner: null };
-            const isNVDay = nvDays.includes(day);
-            const meals = ['lunch', 'dinner'];
-            
-            // Randomize which slot gets the "Special" dish (Non-Veg or Daily)
+            schedule[day] = { lunch: null, dinner: null, generatedAt: genTime };
+            let nvUsed = false;
+            let dailyUsed = false;
+            let meals = ['lunch', 'dinner'];
             if (Math.random() > 0.5) meals.reverse();
 
-            let nvAssigned = false;
-            let dailyAssigned = false;
-
             for (const m of meals) {
-                // Priority 1: Leftovers
                 if (leftover.rem > 0) {
                     schedule[day][m] = leftover.item.name;
-                    if (leftover.item.category !== 'Veg') nvAssigned = true;
-                    if (leftover.item.isDailyDish) dailyAssigned = true;
+                    if (leftover.item.category !== 'Veg') nvUsed = true;
+                    if (leftover.item.isDailyDish) dailyUsed = true;
                     leftover.rem--;
-                } 
-                else {
+                } else {
                     let picked = null;
-                    
-                    // Priority 2: Non-Veg Limit (Exactly 1 if possible)
-                    if (isNVDay && !nvAssigned) {
-                        let options = pool.filter(d => d.category !== 'Veg');
-                        if (options.length > 0) {
-                            picked = options[Math.floor(Math.random() * options.length)];
-                            nvAssigned = true;
-                        }
+                    // Rule 1: One Non-Veg on allowed days
+                    if (nvDays.includes(day) && !nvUsed) {
+                        let opts = pool.filter(d => d.category !== 'Veg');
+                        if (opts.length > 0) { picked = opts[Math.floor(Math.random()*opts.length)]; nvUsed = true; }
                     } 
-                    // Priority 3: Daily Dish on Veg Days
-                    else if (!isNVDay && !dailyAssigned) {
-                        let options = master.filter(d => d.isDailyDish);
-                        if (options.length > 0) {
-                            picked = options[Math.floor(Math.random() * options.length)];
-                            dailyAssigned = true;
-                        }
+                    // Rule 2: One Daily Dish on Veg days
+                    else if (!nvDays.includes(day) && !dailyUsed) {
+                        let opts = master.filter(d => d.isDailyDish);
+                        if (opts.length > 0) { picked = opts[Math.floor(Math.random()*opts.length)]; dailyUsed = true; }
                     }
 
-                    // Priority 4: Random Veg Fill
+                    // Rule 3: Filler (Standard Veg or unused Daily Dish budget)
                     if (!picked) {
-                        let options = pool.filter(d => d.category === 'Veg');
-                        if (options.length === 0) options = master.filter(d => d.category === 'Veg');
-                        picked = options[Math.floor(Math.random() * options.length)];
+                        let opts = pool.filter(d => {
+                            if (d.category !== 'Veg') return false; 
+                            if (d.isDailyDish && dailyUsed) return false; // Block if already used one daily dish today
+                            if (!nvDays.includes(day) && d.isDailyDish) return false; // On Veg days, Daily dish is already handled in Rule 2
+                            return true;
+                        });
+                        if (opts.length === 0) opts = master.filter(d => d.category === 'Veg' && !d.isDailyDish);
+                        picked = opts[Math.floor(Math.random()*opts.length)];
+                        if (picked.isDailyDish) dailyUsed = true;
                     }
 
                     schedule[day][m] = picked.name;
