@@ -1,425 +1,617 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>My Meal Planner</title>
-        <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore-compat.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Meal Planner</title>
+    <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore-compat.js"></script>
 
-        <style>
-            :root {
-                --primary: #4f46e5;
-                --success: #16a34a;
-                --bg-body: #272727;
-                --border: #4b4b4b;
-            }
-            body {
-                font-family: sans-serif;
-                background: var(--bg-body);
-                margin: 0;
-                padding: 20px;
-                color: #939393;
-                background: #1f1f1f;
-            }
-            .container {
-                max-width: 850px;
-                margin: 0 auto;
-            }
-            header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-            }
-            .card {
-                background: #2d2d2d;
-                padding: 20px;
-                border-radius: 12px;
-                border: 2px solid var(--border);
-                margin-bottom: 20px;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            }
-            .day-grid {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
-                margin-top: 10px;
-            }
-            .day-chip {
-                display: flex;
-                align-items: center;
-                background: var(--primary);
-                padding: 8px 12px;
-                border-radius: 6px;
-                cursor: pointer;
-                font-size: 0.9rem;
-                color: #cdcdcd;
-            }
-            .day-chip input {
-                margin-right: 8px;
-            }
-            button {
-                cursor: pointer;
-                border: none;
-                border-radius: 8px;
-                padding: 12px 20px;
-                font-weight: 600;
-            }
-            .btn-add {
-                background: var(--primary);
-                color: white;
-            }
-            .btn-gen {
-                background: var(--success);
-                color: white;
-                width: 100%;
-                font-size: 1.1rem;
-                margin-bottom: 10px;
-            }
-            .timestamp-info {
-                text-align: center;
-                font-size: 0.85rem;
-                color: #6b7280;
-                margin-bottom: 20px;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                background: #2d2d2d;
-                border-radius: 12px;
-                overflow: hidden;
-            }
-            th,
-            td {
-                padding: 15px;
-                border-bottom: 2px solid var(--border);
-                text-align: left;
-            }
-            th {
-                background: var(--primary);
-                color: #cdcdcd;
-                font-size: 0.9rem;
-                text-transform: uppercase;
-            }
-            .modal {
-                display: none;
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.5);
-                align-items: center;
-                justify-content: center;
-                z-index: 100;
-            }
-            .modal.active {
-                display: flex;
-            }
-            .modal-content {
-                background: var(--bg-body);
-                padding: 25px;
-                border-radius: 12px;
-                width: 90%;
-                max-width: 450px;
-            }
-            .tabs {
-                display: flex;
-                margin-bottom: 20px;
-                border-bottom: 1px solid #ddd;
-            }
-            .tab {
-                padding: 10px;
-                cursor: pointer;
-                opacity: 0.6;
-            }
-            .tab.active {
-                opacity: 1;
-                border-bottom: 2px solid var(--primary);
-                font-weight: bold;
-            }
-            .form-group {
-                margin-bottom: 15px;
-            }
-            label {
-                display: block;
-                margin-bottom: 5px;
-                font-size: 0.9rem;
-                font-weight: 500;
-            }
-            input,
-            select {
-                width: 100%;
-                padding: 10px;
-                box-sizing: border-box;
-                border: 2px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg-body);
-                color: #939393;
-            }
-            .btn-cancel {
-                width: 100%;
-                margin-top: 10px;
-                background: var(--border);
-                color: #939393;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <header>
-                <h1>My Meal Planner</h1>
-                <button class="btn-add" onclick="toggleModal()">Menu / Settings</button>
-            </header>
+    <style>
+    :root {
+        --primary: #4f46e5;
+        --success: #16a34a;
+        --bg-body: #272727;
+        --border: #4b4b4b;
+    }
+    body {
+        font-family: sans-serif;
+        background: var(--bg-body);
+        margin: 0;
+        padding: 20px;
+        color: #939393;
+        background: #1f1f1f;
+    }
+    .container {
+        max-width: 850px;
+        margin: 0 auto;
+    }
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .card {
+        background: #2d2d2d;
+        padding: 20px;
+        border-radius: 12px;
+        border: 2px solid var(--border);
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    .day-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    .day-chip {
+        display: flex;
+        align-items: center;
+        background: var(--primary);
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #cdcdcd;
+    }
+    .day-chip input {
+        margin-right: 8px;
+    }
+    button {
+        cursor: pointer;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 20px;
+        font-weight: 600;
+    }
+    .btn-add {
+        background: var(--primary);
+        color: white;
+    }
+    .btn-gen {
+        background: var(--success);
+        color: white;
+        width: 100%;
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+    .timestamp-info {
+        text-align: center;
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-bottom: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #2d2d2d;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    th,
+    td {
+        padding: 15px;
+        border-bottom: 2px solid var(--border);
+        text-align: left;
+    }
+    th {
+        background: var(--primary);
+        color: #cdcdcd;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+    }
+    .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7); /* Slightly darker for contrast */
+        /* align-items: center; */
+        justify-content: center;
+        z-index: 100;
+    }
+    .modal.active {
+        display: flex;
+    }
+    .modal-content {
+        background: var(--bg-body);
+        padding: 25px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 450px;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+    .tabs {
+        display: flex;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #ddd;
+    }
+    .tab {
+        padding: 10px;
+        cursor: pointer;
+        opacity: 0.6;
+    }
+    .tab.active {
+        opacity: 1;
+        border-bottom: 2px solid var(--primary);
+        font-weight: bold;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    input,
+    select {
+        width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+        border: 2px solid var(--border);
+        border-radius: 6px;
+        background: var(--bg-body);
+        color: #939393;
+    }
+    /* Added your new btn-cancel class */
+    .btn-cancel {
+        width: 100%;
+        margin-top: 10px;
+        background: var(--border);
+        color: #cdcdcd; /* Adjusted for better visibility on dark bg */
+    }
+    /* Adjusted Library list for Dark Mode */
+    .library-item {
+        /* background: #333333 !important;
+        border-color: var(--border) !important;
+        margin-bottom: 8px; */
+        background: #333333 !important;
+        border-color: var(--border) !important;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border-radius: 8px;
 
-            <div class="card">
-                <strong>Select Non-Veg Allowed Days:</strong>
-                <div id="day-selector" class="day-grid"></div>
+    }
+    .btn-edit-sm {
+        background: #e0e7ff;
+        color: #4338ca;
+        padding: 5px 10px;
+        font-size: 0.75rem;
+    }
+    </style>
+
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>My Meal Planner</h1>
+        <button class="btn-add" onclick="toggleModal()">Menu / Library</button>
+    </header>
+
+    <div class="card">
+        <strong>Which days allow Non-Veg this week?</strong>
+        <div id="day-selector" class="day-grid"></div>
+    </div>
+
+    <button class="btn-gen" onclick="generatePlan()">Generate Weekly Schedule</button>
+    <div id="gen-timestamp" class="timestamp-info"></div>
+
+    <div class="card" style="padding:0; overflow: hidden;">
+        <table>
+            <thead><tr><th>Day</th><th>Lunch</th><th>Dinner</th></tr></thead>
+            <tbody id="meal-plan-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- <div id="modal" class="modal">
+    <div class="modal-content">
+        <div class="tabs">
+            <div id="t1" class="tab active" onclick="switchTab('add-dish')">Add/Edit Dish</div>
+            <div id="t2" class="tab" onclick="switchTab('library'); loadLibrary();">Library</div>
+            <div id="t3" class="tab" onclick="switchTab('settings')">Rules</div>
+        </div>
+        
+        <div id="pane-add-dish">
+            <input type="hidden" id="editing-id">
+            <div class="form-group"><label>Dish Name</label><input id="d-name" type="text" placeholder="e.g. Pasta"></div>
+            <div class="form-group"><label>Category</label><select id="d-cat"><option>Veg</option><option>Chicken</option><option>Fish</option></select></div>
+            <div class="form-group"><label>Servings (Slots)</label><input id="d-serv" type="number" value="1" min="1"></div>
+            <div class="form-group"><label>Is this a Daily Dish?</label><select id="d-daily"><option value="false">No</option><option value="true">Yes</option></select></div>
+            
+            <div style="display:flex; gap: 20px; margin-bottom: 15px;">
+                <label style="display:flex; align-items:center; cursor:pointer"><input type="checkbox" id="d-dup" style="width:auto; margin-right:8px"> Duplicate OK?</label>
+                <label style="display:flex; align-items:center; cursor:pointer"><input type="checkbox" id="d-enabled" checked style="width:auto; margin-right:8px"> Is Enabled?</label>
             </div>
 
-            <button class="btn-gen" onclick="generatePlan()">Generate Weekly Schedule</button>
-            <div id="gen-timestamp" class="timestamp-info"></div>
+            <button id="btn-save-dish" class="btn-add" style="width:100%" onclick="saveDish()">Save Dish</button>
+            <button id="btn-cancel-edit" onclick="resetForm()" style="width:100%; margin-top:10px; background:#f3f4f6; display:none">Cancel Edit</button>
+        </div>
 
-            <div class="card" style="padding: 0">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Day</th>
-                            <th>Lunch</th>
-                            <th>Dinner</th>
-                        </tr>
-                    </thead>
-                    <tbody id="meal-plan-body"></tbody>
-                </table>
+        <div id="pane-library" style="display:none">
+            <input type="text" id="lib-search" class="search-bar" placeholder="Search dishes..." oninput="filterLibrary()">
+            <div id="library-container" class="library-list">
+                </div>
+        </div>
+
+        <div id="pane-settings" style="display:none">
+            <p style="font-size:0.85rem">Select your default <strong>Veg-Only</strong> days:</p>
+            <div id="default-veg-list"></div>
+            <button class="btn-add" style="width:100%; margin-top:20px" onclick="saveConfig()">Save Default Rules</button>
+        </div>
+    </div>
+</div> -->
+
+<!-- <div id="modal" class="modal">
+    <div class="modal-content">
+        <div class="tabs">
+            <div id="t1" class="tab active" onclick="switchTab('add-dish')">Add/Edit Dish</div>
+            <div id="t2" class="tab" onclick="switchTab('library'); loadLibrary();">Library</div>
+            <div id="t3" class="tab" onclick="switchTab('settings')">Rules</div>
+        </div>
+        
+        <div id="pane-add-dish">
+            <input type="hidden" id="editing-id">
+            <div class="form-group"><label>Dish Name</label><input id="d-name" type="text" placeholder="e.g. Pasta"></div>
+            <div class="form-group"><label>Category</label><select id="d-cat"><option>Veg</option><option>Chicken</option><option>Fish</option></select></div>
+            <div class="form-group"><label>Servings (Slots)</label><input id="d-serv" type="number" value="1" min="1"></div>
+            <div class="form-group"><label>Is this a Daily Dish?</label><select id="d-daily"><option value="false">No</option><option value="true">Yes</option></select></div>
+            
+            <div style="display:flex; gap: 20px; margin-bottom: 15px;">
+                <label style="display:flex; align-items:center; cursor:pointer; font-size: 0.85rem;"><input type="checkbox" id="d-dup" style="width:auto; margin-right:8px"> Duplicate OK?</label>
+                <label style="display:flex; align-items:center; cursor:pointer; font-size: 0.85rem;"><input type="checkbox" id="d-enabled" checked style="width:auto; margin-right:8px"> Is Enabled?</label>
+            </div>
+
+            <button id="btn-save-dish" class="btn-add" style="width:100%" onclick="saveDish()">Save Dish</button>
+            
+            <div style="display:flex; gap: 10px; margin-top: 10px;">
+                <button id="btn-cancel-edit" onclick="resetForm()" style="flex:1; background:#f3f4f6; display:none; color: #ef4444;">Cancel Edit</button>
+                <button onclick="toggleModal()" style="flex:1; background:#f3f4f6;">Close Modal</button>
             </div>
         </div>
 
-        <div id="modal" class="modal">
-            <div class="modal-content">
-                <div class="tabs">
-                    <div id="t1" class="tab active" onclick="switchTab('add-dish')">Add Dish</div>
-                    <div id="t2" class="tab" onclick="switchTab('settings')">Default Rules</div>
+        <div id="pane-library" style="display:none">
+            <input type="text" id="lib-search" class="search-bar" placeholder="Search dishes..." oninput="filterLibrary()">
+            <div id="library-container" class="library-list" style="max-height: 300px; overflow-y: auto;">
                 </div>
-
-                <div id="pane-add-dish">
-                    <div class="form-group">
-                        <label>Dish Name</label>
-                        <input id="d-name" type="text" placeholder="e.g. Fish Curry" />
-                    </div>
-                    <div class="form-group">
-                        <label>Category</label>
-                        <select id="d-cat">
-                            <option>Veg</option>
-                            <option>Chicken</option>
-                            <option>Fish</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Servings (Slots)</label>
-                        <input id="d-serv" type="number" value="1" min="1" />
-                    </div>
-                    <div class="form-group">
-                        <label>Is this a Daily Dish?</label>
-                        <select id="d-daily">
-                            <option value="false">No</option>
-                            <option value="true">Yes</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <input type="checkbox" id="d-dup" />
-                        <label style="display: inline">Allow Duplicate in same week?</label>
-                    </div>
-                    <button class="btn-add" style="width: 100%" onclick="saveDish()">Save Dish</button>
-                    <button class="btn-cancel" onclick="toggleModal()">Cancel</button>
-                </div>
-
-                <div id="pane-settings" style="display: none">
-                    <p style="font-size: 0.9rem">
-                        Select your default
-                        <strong>Veg-Only</strong>
-                        days:
-                    </p>
-                    <div id="default-veg-list"></div>
-                    <button class="btn-add" style="width: 100%; margin-top: 20px" onclick="saveConfig()">Save Default Rules</button>
-                    <button onclick="toggleModal()" class="btn-cancel">Cancel</button>
-                </div>
-            </div>
+            <button onclick="toggleModal()" style="width:100%; margin-top:15px; background:#f3f4f6">Close Library</button>
         </div>
 
-        <script>
-            const collectionMain = "My Meal Planner";
-            const collectionMealPlan = "Current Meal Plan";
-            const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        <div id="pane-settings" style="display:none">
+            <p style="font-size:0.85rem">Select your default <strong>Veg-Only</strong> days:</p>
+            <div id="default-veg-list" style="margin-bottom: 20px;"></div>
+            
+            <div style="display:flex; gap:10px;">
+                <button onclick="toggleModal()" style="flex:1; background:#f3f4f6">Cancel</button>
+                <button class="btn-add" style="flex:1;" onclick="saveConfig()">Save Rules</button>
+            </div>
+        </div>
+    </div>
+</div> -->
 
-            const firebaseConfig = {
-                apiKey: "AIzaSyBGM_ws-4leOmvLLzIEU62y36cHLjYeezQ",
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <div class="tabs">
+            <div id="t1" class="tab active" onclick="switchTab('add-dish')">Add/Edit Dish</div>
+            <div id="t2" class="tab" onclick="switchTab('library'); loadLibrary();">Library</div>
+            <div id="t3" class="tab" onclick="switchTab('settings')">Rules</div>
+        </div>
+        
+        <div id="pane-add-dish">
+            <input type="hidden" id="editing-id">
+            <div class="form-group"><label>Dish Name</label><input id="d-name" type="text" placeholder="e.g. Pasta"></div>
+            <div class="form-group"><label>Category</label><select id="d-cat"><option>Veg</option><option>Chicken</option><option>Fish</option></select></div>
+            <div class="form-group"><label>Servings (Slots)</label><input id="d-serv" type="number" value="1" min="1"></div>
+            <div class="form-group"><label>Is this a Daily Dish?</label><select id="d-daily"><option value="false">No</option><option value="true">Yes</option></select></div>
+            
+            <div style="display:flex; gap: 20px; margin-bottom: 15px;">
+                <label style="display:flex; align-items:center; cursor:pointer; font-size: 0.85rem;"><input type="checkbox" id="d-dup" style="width:auto; margin-right:8px"> Duplicate OK?</label>
+                <label style="display:flex; align-items:center; cursor:pointer; font-size: 0.85rem;"><input type="checkbox" id="d-enabled" checked style="width:auto; margin-right:8px"> Is Enabled?</label>
+            </div>
+
+            <button id="btn-save-dish" class="btn-add" style="width:100%" onclick="saveDish()">Save Dish</button>
+            <button id="btn-cancel-edit" class="btn-cancel" onclick="resetForm()" style="display:none; color: #ef4444;">Cancel Edit</button>
+            <button class="btn-cancel" onclick="toggleModal()">Close Modal</button>
+        </div>
+
+        <div id="pane-library" style="display:none">
+            <input type="text" id="lib-search" placeholder="Search dishes..." oninput="filterLibrary()" style="margin-bottom: 15px;">
+            <div id="library-container" class="library-list" style="max-height: 300px; overflow-y: auto;"></div>
+            <button class="btn-cancel" onclick="toggleModal()">Close Library</button>
+        </div>
+
+        <div id="pane-settings" style="display:none">
+            <p style="font-size:0.85rem">Select your default <strong>Veg-Only</strong> days:</p>
+            <div id="default-veg-list" style="margin-bottom: 20px;"></div>
+            
+            <button class="btn-add" style="width:100%" onclick="saveConfig()">Save Rules</button>
+            <button class="btn-cancel" onclick="toggleModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const collectionMain = "My Meal Planner";
+    const collectionMealPlan = "Current Meal Plan";
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBGM_ws-4leOmvLLzIEU62y36cHLjYeezQ",
                 authDomain: "my-bookmarks-01.firebaseapp.com",
                 projectId: "my-bookmarks-01",
                 storageBucket: "my-bookmarks-01.firebasestorage.app",
                 messagingSenderId: "202931759065",
-                appId: "1:202931759065:web:ccfa3cf456370d839a5bc8",
-            };
-            firebase.initializeApp(firebaseConfig);
-            const db = firebase.firestore();
+                appId: "1:202931759065:web:ccfa3cf456370d839a5bc8"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-            window.onload = () => {
-                const sel = document.getElementById("day-selector");
-                const def = document.getElementById("default-veg-list");
-                days.forEach((d) => {
-                    sel.innerHTML += `<label class="day-chip"><input type="checkbox" value="${d}" class="nv-check"> ${d}</label>`;
-                    def.innerHTML += `<div style="margin-bottom:5px"><input type="checkbox" value="${d}" class="def-veg-check"> ${d}</div>`;
-                });
-                loadPlan();
-                loadConfig();
-            };
+    let libraryCache = [];
 
-            function toggleModal() {
-                document.getElementById("modal").classList.toggle("active");
+    window.onload = () => {
+        const sel = document.getElementById('day-selector');
+        const def = document.getElementById('default-veg-list');
+        days.forEach(d => {
+            sel.innerHTML += `<label class="day-chip"><input type="checkbox" value="${d}" class="nv-check"> ${d}</label>`;
+            def.innerHTML += `<div style="margin-bottom:8px; font-size:0.9rem"><input type="checkbox" value="${d}" class="def-veg-check"> ${d}</div>`;
+        });
+        loadPlan();
+        loadConfig();
+    };
+
+    function toggleModal() { 
+        document.getElementById('modal').classList.toggle('active'); 
+        if(!document.getElementById('modal').classList.contains('active')) resetForm();
+    }
+    
+    function switchTab(t) {
+        document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+        document.getElementById('pane-add-dish').style.display = t === 'add-dish' ? 'block' : 'none';
+        document.getElementById('pane-library').style.display = t === 'library' ? 'block' : 'none';
+        document.getElementById('pane-settings').style.display = t === 'settings' ? 'block' : 'none';
+        
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        if(t==='add-dish') document.getElementById('t1').classList.add('active');
+        if(t==='library') document.getElementById('t2').classList.add('active');
+        if(t==='settings') document.getElementById('t3').classList.add('active');
+    }
+
+    /* --- LIBRARY LOGIC --- */
+
+    async function loadLibrary() {
+        const snap = await db.collection(collectionMain).where('type', '==', 'dish').get();
+        libraryCache = [];
+        snap.forEach(doc => libraryCache.push({ id: doc.id, ...doc.data() }));
+        
+        // Alphabetical Sort
+        libraryCache.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+        renderLibrary(libraryCache);
+    }
+
+    function renderLibrary(items) {
+        const container = document.getElementById('library-container');
+        container.innerHTML = '';
+        items.forEach(dish => {
+            const isOff = dish.isEnabled === false;
+            container.innerHTML += `
+                <div class="library-item ${isOff ? 'disabled-dish' : ''}">
+                    <div class="lib-info">
+                        <span class="lib-name">${dish.name}</span>
+                        <span class="lib-meta">${dish.category} : ${dish.servings} serving(s) ${dish.isDailyDish ? '� Daily' : ''}</span>
+                    </div>
+                    <div class="lib-actions">
+                        <button class="btn-edit-sm" onclick="startEdit('${dish.id}')">Edit</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function filterLibrary() {
+        const term = document.getElementById('lib-search').value.toLowerCase();
+        const filtered = libraryCache.filter(d => d.name.toLowerCase().includes(term));
+        renderLibrary(filtered);
+    }
+
+    /* function startEdit(id) {
+        const dish = libraryCache.find(d => d.id === id);
+        if(!dish) return;
+
+        document.getElementById('editing-id').value = id;
+        document.getElementById('d-name').value = dish.name;
+        document.getElementById('d-cat').value = dish.category;
+        document.getElementById('d-serv').value = dish.servings;
+        document.getElementById('d-daily').value = dish.isDailyDish ? "true" : "false";
+        document.getElementById('d-dup').checked = dish.duplicateEnabled;
+        document.getElementById('d-enabled').checked = dish.isEnabled !== false;
+
+        document.getElementById('btn-save-dish').innerText = "Update Dish";
+        document.getElementById('btn-cancel-edit').style.display = 'block';
+        switchTab('add-dish');
+    } */
+    // Ensure startEdit triggers the button display
+    function startEdit(id) {
+        const dish = libraryCache.find(d => d.id === id);
+        if(!dish) return;
+
+        document.getElementById('editing-id').value = id;
+        document.getElementById('d-name').value = dish.name;
+        document.getElementById('d-cat').value = dish.category;
+        document.getElementById('d-serv').value = dish.servings;
+        document.getElementById('d-daily').value = dish.isDailyDish ? "true" : "false";
+        document.getElementById('d-dup').checked = dish.duplicateEnabled;
+        document.getElementById('d-enabled').checked = dish.isEnabled !== false;
+
+        document.getElementById('btn-save-dish').innerText = "Update Dish";
+        
+        // Show the Cancel Edit button when an edit is active
+        document.getElementById('btn-cancel-edit').style.display = 'block';
+        switchTab('add-dish');
+    }
+
+    /* function resetForm() {
+        document.getElementById('editing-id').value = '';
+        document.getElementById('d-name').value = '';
+        document.getElementById('d-serv').value = 1;
+        document.getElementById('d-daily').value = "false";
+        document.getElementById('d-dup').checked = false;
+        document.getElementById('d-enabled').checked = true;
+        document.getElementById('btn-save-dish').innerText = "Save Dish";
+        document.getElementById('btn-cancel-edit').style.display = 'none';
+    } */
+
+    /* --- CORE CRUD --- */
+
+    async function saveDish() {
+        const id = document.getElementById('editing-id').value;
+        const dishData = {
+            name: document.getElementById('d-name').value.trim(),
+            category: document.getElementById('d-cat').value,
+            servings: parseInt(document.getElementById('d-serv').value),
+            isDailyDish: document.getElementById('d-daily').value === "true",
+            duplicateEnabled: document.getElementById('d-dup').checked,
+            isEnabled: document.getElementById('d-enabled').checked,
+            type: 'dish',
+            timestamp: Date.now()
+        };
+
+        if(!dishData.name) return alert("Dish name required");
+
+        if(id) {
+            await db.collection(collectionMain).doc(id).update(dishData);
+            alert("Dish Updated!");
+        } else {
+            await db.collection(collectionMain).add(dishData);
+            alert("New Dish Saved!");
+        }
+        resetForm();
+        toggleModal();
+    }
+
+    /* --- GENERATOR & PLAN --- */
+
+    async function loadPlan() {
+        const snap = await db.collection(collectionMealPlan).get();
+        const body = document.getElementById('meal-plan-body');
+        const tsInfo = document.getElementById('gen-timestamp');
+        body.innerHTML = '';
+        let latestTs = null;
+        const data = {}; 
+        snap.forEach(doc => {
+            data[doc.id] = doc.data();
+            if(doc.data().generatedAt) latestTs = doc.data().generatedAt;
+        });
+        days.forEach(d => {
+            const m = data[d] || { lunch: '-', dinner: '-' };
+            body.innerHTML += `<tr><td><strong>${d}</strong></td><td>${m.lunch}</td><td>${m.dinner}</td></tr>`;
+        });
+        if(latestTs) tsInfo.innerText = "Plan generated on: " + new Date(latestTs).toLocaleString();
+    }
+
+    async function loadConfig() {
+        const doc = await db.collection(collectionMain).doc('config').get();
+        if (doc.exists) {
+            const veg = doc.data().vegDays || [];
+            document.querySelectorAll('.def-veg-check').forEach(c => c.checked = veg.includes(c.value));
+        }
+    }
+
+    async function saveConfig() {
+        const vegDays = Array.from(document.querySelectorAll('.def-veg-check:checked')).map(e => e.value);
+        await db.collection(collectionMain).doc('config').set({ vegDays });
+        alert("Rules saved!");
+        toggleModal();
+    }
+
+    async function generatePlan() {
+        let nvDays = Array.from(document.querySelectorAll('.nv-check:checked')).map(e => e.value);
+        if (nvDays.length === 0) {
+            const conf = await db.collection(collectionMain).doc('config').get();
+            if (conf.exists) {
+                const blocked = conf.data().vegDays || [];
+                nvDays = days.filter(d => !blocked.includes(d));
             }
+        }
 
-            function switchTab(t) {
-                document.getElementById("pane-add-dish").style.display = t === "add-dish" ? "block" : "none";
-                document.getElementById("pane-settings").style.display = t === "settings" ? "block" : "none";
-                document.getElementById("t1").classList.toggle("active", t === "add-dish");
-                document.getElementById("t2").classList.toggle("active", t === "settings");
-            }
+        // FETCH ONLY ENABLED DISHES
+        const snap = await db.collection(collectionMain).where('type', '==', 'dish').get();
+        let master = []; 
+        snap.forEach(d => {
+            const data = d.data();
+            if(data.isEnabled !== false) master.push(data);
+        });
 
-            async function loadPlan() {
-                const snap = await db.collection(collectionMealPlan).get();
-                const body = document.getElementById("meal-plan-body");
-                const tsInfo = document.getElementById("gen-timestamp");
-                body.innerHTML = "";
+        if(master.length === 0) return alert("Please enable some dishes in the library!");
 
-                let latestTs = null;
-                const data = {};
-                snap.forEach((doc) => {
-                    data[doc.id] = doc.data();
-                    if (doc.data().generatedAt) latestTs = doc.data().generatedAt;
-                });
+        let pool = [...master], schedule = {}, leftover = { item: null, rem: 0 };
+        const genTime = Date.now();
 
-                days.forEach((d) => {
-                    const m = data[d] || {lunch: "-", dinner: "-"};
-                    body.innerHTML += `<tr><td><strong>${d}</strong></td><td>${m.lunch}</td><td>${m.dinner}</td></tr>`;
-                });
+        for (const day of days) {
+            schedule[day] = { lunch: null, dinner: null, generatedAt: genTime };
+            let nvUsed = false; let dailyUsed = false;
+            let meals = ['lunch', 'dinner'];
+            if (Math.random() > 0.5) meals.reverse();
 
-                if (latestTs) tsInfo.innerText = "Current plan generated on: " + new Date(latestTs).toLocaleString();
-            }
-
-            async function loadConfig() {
-                const doc = await db.collection(collectionMain).doc("config").get();
-                if (doc.exists) {
-                    const veg = doc.data().vegDays || [];
-                    document.querySelectorAll(".def-veg-check").forEach((c) => (c.checked = veg.includes(c.value)));
-                }
-            }
-
-            async function saveConfig() {
-                const vegDays = Array.from(document.querySelectorAll(".def-veg-check:checked")).map((e) => e.value);
-                await db.collection(collectionMain).doc("config").set({vegDays});
-                alert("Default settings saved!");
-                toggleModal();
-            }
-
-            async function saveDish() {
-                const name = document.getElementById("d-name").value;
-                const category = document.getElementById("d-cat").value;
-                const servings = parseInt(document.getElementById("d-serv").value);
-                const isDailyDish = document.getElementById("d-daily").value === "true";
-                const duplicateEnabled = document.getElementById("d-dup").checked;
-
-                if (!name) return alert("Dish name is required");
-                await db.collection(collectionMain).add({
-                    name,
-                    category,
-                    servings,
-                    isDailyDish,
-                    duplicateEnabled,
-                    type: "dish",
-                    timestamp: Date.now(),
-                });
-                document.getElementById("d-name").value = "";
-                alert("Dish added to library!");
-                toggleModal();
-            }
-
-            async function generatePlan() {
-                let nvDays = Array.from(document.querySelectorAll(".nv-check:checked")).map((e) => e.value);
-                if (nvDays.length === 0) {
-                    const conf = await db.collection(collectionMain).doc("config").get();
-                    if (conf.exists) {
-                        const blocked = conf.data().vegDays || [];
-                        nvDays = days.filter((d) => !blocked.includes(d));
+            for (const m of meals) {
+                if (leftover.rem > 0) {
+                    schedule[day][m] = leftover.item.name;
+                    if (leftover.item.category !== 'Veg') nvUsed = true;
+                    if (leftover.item.isDailyDish) dailyUsed = true;
+                    leftover.rem--;
+                } else {
+                    let picked = null;
+                    if (nvDays.includes(day) && !nvUsed) {
+                        let opts = pool.filter(d => d.category !== 'Veg');
+                        if (opts.length > 0) { picked = opts[Math.floor(Math.random()*opts.length)]; nvUsed = true; }
+                    } else if (!nvDays.includes(day) && !dailyUsed) {
+                        let opts = master.filter(d => d.isDailyDish);
+                        if (opts.length > 0) { picked = opts[Math.floor(Math.random()*opts.length)]; dailyUsed = true; }
                     }
-                }
 
-                const snap = await db.collection(collectionMain).where("type", "==", "dish").get();
-                let master = [];
-                snap.forEach((d) => master.push(d.data()));
-                if (master.length === 0) return alert("Add dishes first!");
-
-                let pool = [...master],
-                    schedule = {},
-                    leftover = {item: null, rem: 0};
-                const genTime = Date.now();
-
-                for (const day of days) {
-                    schedule[day] = {lunch: null, dinner: null, generatedAt: genTime};
-                    let nvUsed = false;
-                    let dailyUsed = false;
-                    let meals = ["lunch", "dinner"];
-                    if (Math.random() > 0.5) meals.reverse();
-
-                    for (const m of meals) {
-                        if (leftover.rem > 0) {
-                            schedule[day][m] = leftover.item.name;
-                            if (leftover.item.category !== "Veg") nvUsed = true;
-                            if (leftover.item.isDailyDish) dailyUsed = true;
-                            leftover.rem--;
-                        } else {
-                            let picked = null;
-                            // Rule 1: One Non-Veg on allowed days
-                            if (nvDays.includes(day) && !nvUsed) {
-                                let opts = pool.filter((d) => d.category !== "Veg");
-                                if (opts.length > 0) {
-                                    picked = opts[Math.floor(Math.random() * opts.length)];
-                                    nvUsed = true;
-                                }
-                            }
-                            // Rule 2: One Daily Dish on Veg days
-                            else if (!nvDays.includes(day) && !dailyUsed) {
-                                let opts = master.filter((d) => d.isDailyDish);
-                                if (opts.length > 0) {
-                                    picked = opts[Math.floor(Math.random() * opts.length)];
-                                    dailyUsed = true;
-                                }
-                            }
-
-                            // Rule 3: Filler (Standard Veg or unused Daily Dish budget)
-                            if (!picked) {
-                                let opts = pool.filter((d) => {
-                                    if (d.category !== "Veg") return false;
-                                    if (d.isDailyDish && dailyUsed) return false; // Block if already used one daily dish today
-                                    if (!nvDays.includes(day) && d.isDailyDish) return false; // On Veg days, Daily dish is already handled in Rule 2
-                                    return true;
-                                });
-                                if (opts.length === 0) opts = master.filter((d) => d.category === "Veg" && !d.isDailyDish);
-                                picked = opts[Math.floor(Math.random() * opts.length)];
-                                if (picked.isDailyDish) dailyUsed = true;
-                            }
-
-                            schedule[day][m] = picked.name;
-                            if (picked.servings > 1) {
-                                leftover.item = picked;
-                                leftover.rem = picked.servings - 1;
-                            }
-                            if (!picked.duplicateEnabled && !picked.isDailyDish) pool = pool.filter((p) => p.name !== picked.name);
-                        }
+                    if (!picked) {
+                        let opts = pool.filter(d => {
+                            if (d.category !== 'Veg') return false; 
+                            if (d.isDailyDish && dailyUsed) return false;
+                            if (!nvDays.includes(day) && d.isDailyDish) return false;
+                            return true;
+                        });
+                        if (opts.length === 0) opts = master.filter(d => d.category === 'Veg' && !d.isDailyDish);
+                        picked = opts[Math.floor(Math.random()*opts.length)];
+                        if (picked.isDailyDish) dailyUsed = true;
                     }
+                    schedule[day][m] = picked.name;
+                    if (picked.servings > 1) { leftover.item = picked; leftover.rem = picked.servings - 1; }
+                    if (!picked.duplicateEnabled && !picked.isDailyDish) pool = pool.filter(p => p.name !== picked.name);
                 }
-
-                const b = db.batch();
-                days.forEach((d) => b.set(db.collection(collectionMealPlan).doc(d), schedule[d]));
-                await b.commit();
-                loadPlan();
             }
-        </script>
-    </body>
+        }
+        const b = db.batch();
+        days.forEach(d => b.set(db.collection(collectionMealPlan).doc(d), schedule[d]));
+        await b.commit();
+        loadPlan();
+    }
+
+    function resetForm() {
+        document.getElementById('editing-id').value = '';
+        document.getElementById('d-name').value = '';
+        document.getElementById('d-serv').value = 1;
+        document.getElementById('d-daily').value = "false";
+        document.getElementById('d-dup').checked = false;
+        document.getElementById('d-enabled').checked = true;
+        document.getElementById('btn-save-dish').innerText = "Save Dish";
+        
+        // Hide the "Cancel Edit" specifically, keep the "Close Modal" visible
+        document.getElementById('btn-cancel-edit').style.display = 'none';
+    }
+
+</script>
+</body>
 </html>
